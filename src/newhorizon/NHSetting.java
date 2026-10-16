@@ -25,11 +25,17 @@ public class NHSetting {
     public static final String
             START_LOG = "nh-hide-starting-log",
             EFFECT_DETAIL = "nh-effect-detail",
-            QUANTUM_WEATHER_PARTICLE_CAP = "nh-quantum-weather-particle-cap";
+            QUANTUM_WEATHER_PARTICLE_CAP = "nh-quantum-weather-particle-cap",
+            QUANTUM_WEATHER_MIN_ZOOM = "nh-quantum-weather-min-zoom";
 
     public static final int
             QUANTUM_WEATHER_PARTICLE_CAP_DEFAULT = 2048,
-            QUANTUM_WEATHER_PARTICLE_CAP_MAX = 8192;
+            QUANTUM_WEATHER_PARTICLE_CAP_MAX = 128000;
+
+    public static final float
+            QUANTUM_WEATHER_MIN_ZOOM_DEFAULT = 0.12f,
+            QUANTUM_WEATHER_MIN_ZOOM_MIN = 0.01f,
+            QUANTUM_WEATHER_MIN_ZOOM_MAX = 1f;
 
     public static final String
             GRAPHIC_GRAVITY_TRAP_ALPHA = "nh-gravity-trap-alpha",
@@ -74,7 +80,9 @@ public class NHSetting {
                 new SliderSetting(GRAPHIC_GRAVITY_TRAP_OUTLINE_ALPHA, 0.45f, 0.30f, 0.75f, 0.05f, false)
                         .onChange(value -> NHShaders.alphaOuter = value),
                 new IntSliderSetting(QUANTUM_WEATHER_PARTICLE_CAP, QUANTUM_WEATHER_PARTICLE_CAP_DEFAULT, 0,
-                        QUANTUM_WEATHER_PARTICLE_CAP_MAX, 256)
+                        QUANTUM_WEATHER_PARTICLE_CAP_MAX, 256),
+                new SliderSetting(QUANTUM_WEATHER_MIN_ZOOM, QUANTUM_WEATHER_MIN_ZOOM_DEFAULT,
+                        QUANTUM_WEATHER_MIN_ZOOM_MIN, QUANTUM_WEATHER_MIN_ZOOM_MAX, 0.01f, false)
         ));
 
         allSettings.put("override", Seq.with(
@@ -252,7 +260,7 @@ public class NHSetting {
         public void buildTable(Table table) {
             table.table(t -> {
                 t.add(new Label(() -> Core.bundle.format("nh.setting." + key + ".name", getValue()))).padRight(6f).left();
-                t.row().slider(min, max, step, def, f -> {
+                t.row().slider(min, max, step, Mathf.clamp(getValue(), min, max), f -> {
                     settings.put(key, f);
                     onChange.get(f);
                 }).growX();

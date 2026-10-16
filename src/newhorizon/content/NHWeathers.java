@@ -78,7 +78,12 @@ public class NHWeathers {
     static void drawQuantumHexParticles(float intensity, float opacity) {
         if (Core.camera == null || intensity <= 0f || opacity <= 0f) return;
 
-        float invScale = 1f / renderer.minScale();
+        float minScale = Mathf.clamp(
+                NHSetting.getFloat(NHSetting.QUANTUM_WEATHER_MIN_ZOOM, NHSetting.QUANTUM_WEATHER_MIN_ZOOM_DEFAULT),
+                NHSetting.QUANTUM_WEATHER_MIN_ZOOM_MIN, NHSetting.QUANTUM_WEATHER_MIN_ZOOM_MAX
+        );
+        float scale = Math.max(renderer.minScale(), minScale);
+        float invScale = 1f / scale;
         float worldSizeMax = sizeMax * invScale;
 
         Rand rand = particleRand;
@@ -86,8 +91,8 @@ public class NHWeathers {
 
         Tmp.r1.setCentered(
                 Core.camera.position.x, Core.camera.position.y,
-                Core.graphics.getWidth() / renderer.minScale(),
-                Core.graphics.getHeight() / renderer.minScale()
+                Core.graphics.getWidth() / scale,
+                Core.graphics.getHeight() / scale
         );
         Tmp.r1.grow(worldSizeMax * 1.5f);
         Core.camera.bounds(Tmp.r2);
