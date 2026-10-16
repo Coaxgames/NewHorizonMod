@@ -2,6 +2,7 @@ package newhorizon;
 
 import arc.Core;
 import arc.func.Cons;
+import arc.math.Mathf;
 import arc.scene.actions.RunnableAction;
 import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.CheckBox;
@@ -24,8 +25,14 @@ public class NHSetting {
     public static final String
             START_LOG = "nh-hide-starting-log",
             EFFECT_DETAIL = "nh-effect-detail",
+            QUANTUM_WEATHER_PARTICLE_CAP = "nh-quantum-weather-particle-cap";
 
-    GRAPHIC_GRAVITY_TRAP_ALPHA = "nh-gravity-trap-alpha",
+    public static final int
+            QUANTUM_WEATHER_PARTICLE_CAP_DEFAULT = 2048,
+            QUANTUM_WEATHER_PARTICLE_CAP_MAX = 8192;
+
+    public static final String
+            GRAPHIC_GRAVITY_TRAP_ALPHA = "nh-gravity-trap-alpha",
             GRAPHIC_GRAVITY_TRAP_OUTLINE_ALPHA = "nh-gravity-trap-outline-alpha",
 
     OVERRIDE_UNIT_SHIELD = "nh-override-unit-shield",
@@ -65,7 +72,9 @@ public class NHSetting {
                 new SliderSetting(GRAPHIC_GRAVITY_TRAP_ALPHA, 0.12f, 0.02f, 0.18f, 0.01f, false)
                         .onChange(value -> NHShaders.alphaInner = value),
                 new SliderSetting(GRAPHIC_GRAVITY_TRAP_OUTLINE_ALPHA, 0.45f, 0.30f, 0.75f, 0.05f, false)
-                        .onChange(value -> NHShaders.alphaOuter = value)
+                        .onChange(value -> NHShaders.alphaOuter = value),
+                new IntSliderSetting(QUANTUM_WEATHER_PARTICLE_CAP, QUANTUM_WEATHER_PARTICLE_CAP_DEFAULT, 0,
+                        QUANTUM_WEATHER_PARTICLE_CAP_MAX, 256)
         ));
 
         allSettings.put("override", Seq.with(
@@ -143,6 +152,10 @@ public class NHSetting {
 
     public static float getFloat(String key, float def) {
         return Core.settings.getFloat(key, def);
+    }
+
+    public static int getInt(String key, int def) {
+        return Core.settings.getInt(key, def);
     }
 
     public static abstract class SettingKey<T> {
@@ -242,6 +255,41 @@ public class NHSetting {
                 t.row().slider(min, max, step, def, f -> {
                     settings.put(key, f);
                     onChange.get(f);
+                }).growX();
+                t.row().table(i -> {
+                    i.left();
+                    i.defaults().left();
+                    i.add("[lightgray]" + Core.bundle.get("nh.setting." + key + ".desc") + "[]").padLeft(6f).wrap()
+                            .width(Math.min(Core.graphics.getWidth() / 1.2f, 420f)).row();
+                }).growX();
+            }).growX().fillY().margin(8f).left().width(Math.min(Core.graphics.getWidth() / 1.2f, 460f)).row();
+        }
+    }
+
+    public static class IntSliderSetting extends SettingKey<Integer> {
+        public int min, max, step;
+
+        public IntSliderSetting(String key, int def, int min, int max, int step) {
+            super(key);
+            this.def = def;
+            this.min = min;
+            this.max = max;
+            this.step = step;
+        }
+
+        @Override
+        public Integer getValue() {
+            return Core.settings.getInt(key, def);
+        }
+
+        @Override
+        public void buildTable(Table table) {
+            table.table(t -> {
+                t.add(new Label(() -> Core.bundle.format("nh.setting." + key + ".name", getValue()))).padRight(6f).left();
+                t.row().slider(min, max, step, Mathf.clamp(getValue(), min, max), value -> {
+                    int settingValue = Math.round(value);
+                    settings.put(key, settingValue);
+                    onChange.get(settingValue);
                 }).growX();
                 t.row().table(i -> {
                     i.left();

@@ -14,6 +14,7 @@ import mindustry.type.Weather;
 import mindustry.world.meta.Attribute;
 import mindustry.graphics.Pal;
 import mindustry.gen.Sounds;
+import newhorizon.NHSetting;
 import newhorizon.expand.weather.MatterStorm;
 import newhorizon.util.func.MathUtil;
 
@@ -91,7 +92,11 @@ public class NHWeathers {
         Tmp.r1.grow(worldSizeMax * 1.5f);
         Core.camera.bounds(Tmp.r2);
 
-        int count = (int) (Tmp.r1.area() / particleDensity * intensity);
+        int maxParticleCount = Mathf.clamp(
+                NHSetting.getInt(NHSetting.QUANTUM_WEATHER_PARTICLE_CAP, NHSetting.QUANTUM_WEATHER_PARTICLE_CAP_DEFAULT),
+                0, NHSetting.QUANTUM_WEATHER_PARTICLE_CAP_MAX
+        );
+        int count = (int) Math.min(Tmp.r1.area() / particleDensity * intensity, maxParticleCount);
 
         for (int i = 0; i < count; i++) {
             float scl = rand.random(0.5f, 1f);
